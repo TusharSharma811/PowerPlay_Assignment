@@ -68,6 +68,22 @@ Once the server is running, verify at:
 GET http://localhost:5000/api/health
 ```
 
+## Seed Data
+
+Place `seed-data.json` in the `backend` directory, then run:
+
+```bash
+cd backend
+npm run seed
+```
+
+This will:
+- Clear existing data
+- Insert 61 companies
+- Insert 61 customers (mapped to their companies)
+- Insert 2000 invoices (mapped to their customers)
+
+
 ## Assumptions
 
 - One customer belongs to exactly one company.

@@ -3,6 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/db';
 import healthRoute from './routes/health';
+import invoiceRoutes from './routes/invoices';
+import customerRoutes from './routes/customers';
+import dashboardRoutes from './routes/dashboard';
 
 dotenv.config();
 
@@ -15,6 +18,9 @@ app.use(express.json());
 
 // Routes
 app.use('/api/health', healthRoute);
+app.use('/api/invoices', invoiceRoutes);
+app.use('/api/customers', customerRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Start server
 const startServer = async () => {
