@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+
+seed-data.json
+Full Stack - Problem statement.pdf
+invoice-app-wireframes.pdf
+
+
