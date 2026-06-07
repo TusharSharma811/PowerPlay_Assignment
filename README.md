@@ -12,39 +12,8 @@ A full-stack invoice management dashboard built with React, Node.js, Express, an
 | Backend | Node.js, Express 5, TypeScript |
 | Database | MongoDB, Mongoose ODM |
 | HTTP Client | Axios |
-| Routing | React Router v7 |
 
-## Project Structure
 
-```
-├── backend/
-│   └── src/
-│       ├── app.ts                 # Express server entry point
-│       ├── seed.ts                # Database seeder (2000 records)
-│       ├── config/db.ts           # MongoDB connection
-│       ├── models/
-│       │   ├── Company.ts         # Company schema
-│       │   ├── Customer.ts        # Customer schema (ref → Company)
-│       │   └── Invoice.ts         # Invoice schema (ref → Customer)
-│       ├── controllers/
-│       │   ├── invoiceController.ts   # CRUD + filters + pagination
-│       │   ├── customerController.ts  # List + detail with metrics
-│       │   └── dashboardController.ts # Aggregation pipelines
-│       └── routes/
-│           ├── invoices.ts
-│           ├── customers.ts
-│           ├── dashboard.ts
-│           └── health.ts
-├── frontend/
-│   └── src/
-│       ├── App.tsx                # Router setup
-│       ├── services/api.ts        # Axios API layer
-│       └── pages/
-│           ├── Invoices.tsx        # Invoice table with filters
-│           ├── Dashboard.tsx       # Summary cards + bar chart
-│           ├── CustomerProfile.tsx # Customer detail view
-│           └── InvoiceForm.tsx     # Create/edit modal
-```
 
 ## Data Modeling
 
