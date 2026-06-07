@@ -6,20 +6,47 @@ A full-stack invoice management dashboard built with React, Node.js, Express, an
 
 ## Tech Stack
 
-- **Frontend:** React
-- **Backend:** Node.js, Express
-- **Database:** MongoDB, Mongoose
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 19, TypeScript, Tailwind CSS v4, Vite |
+| Backend | Node.js, Express 5, TypeScript |
+| Database | MongoDB, Mongoose ODM |
+| HTTP Client | Axios |
+| Routing | React Router v7 |
+
+## Project Structure
+
+```
+├── backend/
+│   └── src/
+│       ├── app.ts                 # Express server entry point
+│       ├── seed.ts                # Database seeder (2000 records)
+│       ├── config/db.ts           # MongoDB connection
+│       ├── models/
+│       │   ├── Company.ts         # Company schema
+│       │   ├── Customer.ts        # Customer schema (ref → Company)
+│       │   └── Invoice.ts         # Invoice schema (ref → Customer)
+│       ├── controllers/
+│       │   ├── invoiceController.ts   # CRUD + filters + pagination
+│       │   ├── customerController.ts  # List + detail with metrics
+│       │   └── dashboardController.ts # Aggregation pipelines
+│       └── routes/
+│           ├── invoices.ts
+│           ├── customers.ts
+│           ├── dashboard.ts
+│           └── health.ts
+├── frontend/
+│   └── src/
+│       ├── App.tsx                # Router setup
+│       ├── services/api.ts        # Axios API layer
+│       └── pages/
+│           ├── Invoices.tsx        # Invoice table with filters
+│           ├── Dashboard.tsx       # Summary cards + bar chart
+│           ├── CustomerProfile.tsx # Customer detail view
+│           └── InvoiceForm.tsx     # Create/edit modal
+```
 
 ## Data Modeling
-
-### Company
-Stores company information. Each company has a unique name.
-
-### Customer
-Stores customer details with a reference to their company (`companyId`).
-
-### Invoice
-Stores invoice records with a reference to the customer (`customerId`). Contains financial fields (amount, taxRate, tax, total), status, and date fields.
 
 ### Relationships
 
@@ -28,19 +55,42 @@ Company (1) ──> Customer (1)
 Customer (1) ──> Invoice (Many)
 ```
 
-Data is normalized into separate collections instead of embedding everything in a single collection because:
+Data is normalized into three separate collections:
 - **Avoids data duplication** — company/customer info isn't repeated across every invoice.
 - **Easier updates** — changing a company name updates it in one place.
 - **Better querying** — allows independent queries on companies, customers, and invoices.
 - **Scalability** — collections can grow independently.
 
+## API Endpoints
+
+### Invoices
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/invoices` | List invoices (pagination, sorting, filtering) |
+| POST | `/api/invoices` | Create invoice (server computes tax & total) |
+| PUT | `/api/invoices/:id` | Update invoice (recalculates tax & total) |
+
+**Query params:** `page`, `limit`, `sortBy`, `order`, `status`, `customer`, `issueDateFrom`, `issueDateTo`, `dueDateFrom`, `dueDateTo`
+
+### Customers
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/customers` | List all customers with company info |
+| GET | `/api/customers/:id` | Customer detail with metrics & invoice history |
+
+### Dashboard
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/dashboard/summary` | Total billed, paid, unpaid, overdue (aggregation) |
+| GET | `/api/dashboard/top-customers` | Top 5 customers by invoice value (aggregation) |
+
 ## Setup Instructions
 
 ### Prerequisites
 - Node.js (v18+)
-- MongoDB (running locally or a cloud instance)
+- MongoDB (running locally or cloud instance)
 
-### Backend Setup
+### Backend
 
 ```bash
 cd backend
@@ -54,40 +104,32 @@ PORT=5000
 MONGO_URI=mongodb://localhost:27017/invoice-dashboard
 ```
 
-Start the development server:
+Seed the database:
+
+```bash
+npm run seed
+```
+
+Start the server:
 
 ```bash
 npm run dev
 ```
 
-### Health Check
-
-Once the server is running, verify at:
-
-```
-GET http://localhost:5000/api/health
-```
-
-## Seed Data
-
-Place `seed-data.json` in the `backend` directory, then run:
+### Frontend
 
 ```bash
-cd backend
-npm run seed
+cd frontend
+npm install
+npm run dev
 ```
 
-This will:
-- Clear existing data
-- Insert 61 companies
-- Insert 61 customers (mapped to their companies)
-- Insert 2000 invoices (mapped to their customers)
-
+The frontend runs on `http://localhost:5173` and the backend on `http://localhost:5000`.
 
 ## Assumptions
 
 - One customer belongs to exactly one company.
 - One customer can have many invoices.
 - Invoice statuses are: Draft, Sent, Paid, Unpaid, Overdue, Void.
-- Tax and total are calculated server-side.
-
+- Tax and total are always calculated server-side to prevent frontend tampering.
+- Tax rates are restricted to: 0%, 3%, 5%, 18%, 28%.
