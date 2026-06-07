@@ -37,7 +37,8 @@ const STATUS_STYLES: Record<string, string> = {
 function Invoices() {
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
+  const [fetching, setFetching] = useState(false);
   const [totalRecords, setTotalRecords] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -60,7 +61,7 @@ function Invoices() {
   const [showDateFilter, setShowDateFilter] = useState(false);
 
   const fetchInvoices = useCallback(async () => {
-    setLoading(true);
+    setFetching(true);
     try {
       const params: Record<string, string | number> = { page, limit, sortBy, order };
       if (status) params.status = status;
@@ -85,7 +86,8 @@ function Invoices() {
     } catch (err) {
       console.error('Failed to fetch invoices:', err);
     } finally {
-      setLoading(false);
+      setInitialLoad(false);
+      setFetching(false);
     }
   }, [page, limit, sortBy, order, status, customer, issueDateFrom, issueDateTo, dueDateFrom, dueDateTo, search]);
 
@@ -191,7 +193,7 @@ function Invoices() {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>
               </tr>
             </thead>
-            {loading ? (
+            {initialLoad ? (
               <tbody>
                 {Array.from({ length: 8 }).map((_, i) => (
                   <tr key={i}>
@@ -205,7 +207,7 @@ function Invoices() {
                 ))}
               </tbody>
             ) : (
-              <tbody>
+              <tbody className={`transition-opacity duration-150 ${fetching ? 'opacity-50' : 'opacity-100'}`}>
                 {invoices.map(inv => (
                   <tr key={inv._id} className="border-b border-gray-100 hover:bg-gray-50/50">
                     <td className="px-4 py-3.5 font-mono text-sm text-gray-500">{inv.invoiceId}</td>
@@ -226,7 +228,7 @@ function Invoices() {
             )}
           </table>
 
-          {!loading && (
+          {!initialLoad && (
             <div className="flex justify-between items-center px-4 py-3 border-t border-gray-100">
               <span className="text-sm text-gray-400">Showing {startIdx}–{endIdx} of {totalRecords.toLocaleString()}</span>
               <div className="flex gap-1">
