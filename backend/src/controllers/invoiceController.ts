@@ -90,3 +90,75 @@ export const getInvoices = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const createInvoice = async (req: Request, res: Response) => {
+  try {
+    const { invoiceId, customerId, amount, taxRate, status, issueDate, dueDate } = req.body;
+
+    if (!invoiceId || !customerId || amount == null || taxRate == null || !status || !issueDate || !dueDate) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    const customerExists = await Customer.findById(customerId);
+    if (!customerExists) {
+      return res.status(400).json({ message: 'Customer not found' });
+    }
+
+    // Backend calculates tax and total
+    const tax = Math.round(amount * (taxRate / 100) * 100) / 100;
+    const total = Math.round((amount + tax) * 100) / 100;
+
+    const invoice = await Invoice.create({
+      invoiceId,
+      customerId,
+      amount,
+      taxRate,
+      tax,
+      total,
+      status,
+      issueDate: new Date(issueDate),
+      dueDate: new Date(dueDate)
+    });
+
+    res.status(201).json(invoice);
+  } catch (error: any) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'Invoice ID already exists' });
+    }
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateInvoice = async (req: Request, res: Response) => {
+  try {
+    const invoice = await Invoice.findById(req.params.id);
+    if (!invoice) {
+      return res.status(404).json({ message: 'Invoice not found' });
+    }
+
+    const { customerId, amount, taxRate, status, issueDate, dueDate } = req.body;
+
+    if (customerId) {
+      const customerExists = await Customer.findById(customerId);
+      if (!customerExists) {
+        return res.status(400).json({ message: 'Customer not found' });
+      }
+      invoice.customerId = customerId;
+    }
+
+    if (amount != null) invoice.amount = amount;
+    if (taxRate != null) invoice.taxRate = taxRate;
+    if (status) invoice.status = status;
+    if (issueDate) invoice.issueDate = new Date(issueDate);
+    if (dueDate) invoice.dueDate = new Date(dueDate);
+
+    // Recalculate tax and total
+    invoice.tax = Math.round(invoice.amount * (invoice.taxRate / 100) * 100) / 100;
+    invoice.total = Math.round((invoice.amount + invoice.tax) * 100) / 100;
+
+    await invoice.save();
+    res.json(invoice);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
