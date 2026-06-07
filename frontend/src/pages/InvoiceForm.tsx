@@ -99,7 +99,7 @@ function InvoiceForm({ invoiceId, onClose }: Props) {
               <select value={customerId} onChange={e => setCustomerId(e.target.value)} required
                 className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-indigo-400 bg-white">
                 <option value="">Select customer</option>
-                {customers.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                {customers.map(c => <option key={c._id} value={c._id}>{c.name}{c.companyId?.name ? ` (${c.companyId.name})` : ''}</option>)}
               </select>
             </div>
 

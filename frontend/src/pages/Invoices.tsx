@@ -23,6 +23,7 @@ interface Invoice {
 interface Customer {
   _id: string;
   name: string;
+  companyId: { _id: string; name: string };
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -51,7 +52,7 @@ function Invoices() {
   const [sortBy, setSortBy] = useState('issueDate');
   const [order, setOrder] = useState('desc');
   const [status, setStatus] = useState('');
-  const [customer, setCustomer] = useState('');
+  const [customerId, setCustomerId] = useState('');
   const [issueDateFrom, setIssueDateFrom] = useState('');
   const [issueDateTo, setIssueDateTo] = useState('');
   const [dueDateFrom, setDueDateFrom] = useState('');
@@ -65,7 +66,7 @@ function Invoices() {
     try {
       const params: Record<string, string | number> = { page, limit, sortBy, order };
       if (status) params.status = status;
-      if (customer) params.customer = customer;
+      if (customerId) params.customerId = customerId;
       if (issueDateFrom) params.issueDateFrom = issueDateFrom;
       if (issueDateTo) params.issueDateTo = issueDateTo;
       if (dueDateFrom) params.dueDateFrom = dueDateFrom;
@@ -89,7 +90,7 @@ function Invoices() {
       setInitialLoad(false);
       setFetching(false);
     }
-  }, [page, limit, sortBy, order, status, customer, issueDateFrom, issueDateTo, dueDateFrom, dueDateTo, search]);
+  }, [page, limit, sortBy, order, status, customerId, issueDateFrom, issueDateTo, dueDateFrom, dueDateTo, search]);
 
   useEffect(() => { fetchInvoices(); }, [fetchInvoices]);
   useEffect(() => { getCustomers().then(res => setCustomers(res.data)).catch(console.error); }, []);
@@ -148,11 +149,11 @@ function Invoices() {
 
             {/* Customer pill */}
             <div className="relative">
-              <button className={`px-4 py-2.5 border rounded-xl text-sm cursor-pointer ${customer ? 'bg-indigo-50 border-indigo-400 text-indigo-700' : 'border-gray-300 bg-white text-gray-500'}`}>Customer</button>
-              <select value={customer} onChange={e => { setCustomer(e.target.value); setPage(1); }}
+              <button className={`px-4 py-2.5 border rounded-xl text-sm cursor-pointer ${customerId ? 'bg-indigo-50 border-indigo-400 text-indigo-700' : 'border-gray-300 bg-white text-gray-500'}`}>Customer</button>
+              <select value={customerId} onChange={e => { setCustomerId(e.target.value); setPage(1); }}
                 className="absolute inset-0 opacity-0 cursor-pointer">
                 <option value="">All customers</option>
-                {customers.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+                {customers.map(c => <option key={c._id} value={c._id}>{c.name}{c.companyId?.name ? ` (${c.companyId.name})` : ''}</option>)}
               </select>
             </div>
 

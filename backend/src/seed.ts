@@ -46,27 +46,33 @@ const seed = async () => {
     const companyMap = new Map(companyDocs.map(c => [c.name, c._id]));
     console.log(`Inserted ${companyDocs.length} companies`);
 
-    // Extract unique customers with their company
-    const customerCompanyMap = new Map<string, string>();
+    // Extract unique customers with their company (keyed by name+company to support same-name customers)
+    const customerSet = new Map<string, { name: string; company: string }>();
     for (const r of records) {
-      if (!customerCompanyMap.has(r.customer)) {
-        customerCompanyMap.set(r.customer, r.company);
+      const key = `${r.customer}::${r.company}`;
+      if (!customerSet.has(key)) {
+        customerSet.set(key, { name: r.customer, company: r.company });
       }
     }
 
     const customerDocs = await Customer.insertMany(
-      Array.from(customerCompanyMap.entries()).map(([name, company]) => ({
+      Array.from(customerSet.values()).map(({ name, company }) => ({
         name,
         companyId: companyMap.get(company)
       }))
     );
-    const customerMap = new Map(customerDocs.map(c => [c.name, c._id]));
+    // Map by composite key so same-named customers at different companies get distinct IDs
+    const customerMap = new Map<string, any>();
+    for (const doc of customerDocs) {
+      const companyName = uniqueCompanies.find(cn => String(companyMap.get(cn)) === String(doc.companyId));
+      customerMap.set(`${doc.name}::${companyName}`, doc._id);
+    }
     console.log(`Inserted ${customerDocs.length} customers`);
 
     // Insert invoices
     const invoices = records.map(r => ({
       invoiceId: r.invoiceId,
-      customerId: customerMap.get(r.customer),
+      customerId: customerMap.get(`${r.customer}::${r.company}`),
       amount: r.amount,
       taxRate: r.taxRate,
       tax: r.tax,

@@ -11,7 +11,7 @@ export const getInvoices = async (req: Request, res: Response) => {
       sortBy = 'issueDate',
       order = 'desc',
       status,
-      customer,
+      customerId,
       issueDateFrom,
       issueDateTo,
       dueDateFrom,
@@ -29,19 +29,9 @@ export const getInvoices = async (req: Request, res: Response) => {
       filter.status = status;
     }
 
-    // Filter by customer name — look up customerId first
-    if (customer) {
-      const customerDoc = await Customer.findOne({ name: customer });
-      if (customerDoc) {
-        filter.customerId = customerDoc._id;
-      } else {
-        return res.json({
-          invoices: [],
-          totalRecords: 0,
-          totalPages: 0,
-          currentPage: pageNum
-        });
-      }
+    // Filter by customer ID
+    if (customerId) {
+      filter.customerId = customerId;
     }
 
     // Issue date range
